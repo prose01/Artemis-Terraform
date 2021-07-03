@@ -1,0 +1,72 @@
+trigger:
+  paths:
+    include:
+      - /Avalon-Teraform/variables.tf
+      - /v/main.tf
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  group: Terraform-BuildVariables
+  ${{ if eq(variables['Build.SourceBranchName'], 'Development') }}: 
+    stageName: "dev"
+    subscription_id: $(subscription-id-dev)
+    storage_accounts: "terraformdevops01"
+    sa_resource_group: DevOps
+
+  ${{ if eq(variables['Build.SourceBranchName'], 'Test') }}: 
+    stageName: "test"
+    subscription_id: $(subscription-id-test)
+    storage_accounts: "terraformdevops01"
+    sa_resource_group: DevOps
+    
+  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+    stageName: "prod"
+  
+  blob_storage: "avalon-terraform-state-${{ variables.stageName }}"
+  state_file: "tf-statefile.state"
+
+steps:
+  # - script: echo ${{variables.subscription_id}}
+  - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
+    displayName: 'Install Terraform 0.13.5'
+    inputs:
+      terraformVersion: 0.13.5
+
+  - script:  az login --service-principal -u $(devops-service-principal-client-id) -p $(devops-service-principal-secret) --tenant $(devops-service-principal-tenant-id)
+    displayName: 'Log Into Azure'
+
+  - script: terraform init -backend-config=resource_group_name=${{variables.sa_resource_group}} -backend-config="storage_account_name=${{variables.storage_accounts}}" -backend-config="container_name=${{variables.blob_storage}}" -backend-config="access_key=$(terraformdevops01-key1)" -backend-config="key=${{variables.state_file}}"
+    displayName: 'Terraform Init'
+    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+  
+  - script: terraform validate
+    displayName: 'Terraform Validate' 
+    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+
+  - script: terraform plan -input=false -out="tfplan" -var="client_id=$(devops-service-principal-client-id)" -var="client_secret=$(devops-service-principal-secret)" -var="tenant_id=$(devops-service-principal-tenant-id)" -var="subscription_id=${{variables.subscription_id}}" -var="sourceBranchName=${{variables.stageName}}"
+    displayName: 'Terraform Plan'
+    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+  
+  # Delete everything by uncommenting the following section
+  - script: terraform plan -destroy -input=false -out="tfplan" -var="client_id=$(devops-service-principal-client-id)" -var="client_secret=$(devops-service-principal-secret)" -var="tenant_id=$(devops-service-principal-tenant-id)" -var="subscription_id=${{variables.subscription_id}}" -var="sourceBranchName=${{variables.stageName}}"
+    displayName: 'Terraform Plan -destroy '
+    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+
+  - task: ArchiveFiles@2
+    displayName: 'Archive Terraform Plan Files'
+    inputs:
+      rootFolderOrFile: Avalon-Teraform
+      archiveType: tar
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-tfplan.tgz'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Terraform Plan Artifact'
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-tfplan.tgz'
+      artifact: '$(Build.BuildId)-tfplan'
+
+  # - script: terraform apply out.plan
+  #   displayName: 'Terraform Apply'
+  #   workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
