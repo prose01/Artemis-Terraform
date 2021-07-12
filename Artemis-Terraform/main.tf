@@ -78,7 +78,7 @@ resource "azurerm_app_service" "artemis" {
         "Auth0_ApiIdentifier" = "${var.auth0apiIdentifier}"
         "Auth0_Claims_nameidentifier" = "${var.auth0claimsnameidentifier}"
         "FileSizeLimit" = "2097152"
-        "MaxImageNumber" = "10"
+        "MaxImageNumber" = "11"
     }
 
     https_only = "true"
