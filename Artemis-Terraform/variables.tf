@@ -26,11 +26,6 @@ variable "resource_group" {
   default     = "myterraformgroup"
 }
 
-# variable "blob_storage" {
-#   description = "Blob storage Conatainer name."
-#   default     = "terraform-state-default"
-# }
-
 variable "location" {
   description = "The region where the Azure Resource is created."
   default     = "West Europe"
@@ -46,15 +41,7 @@ variable "storage_replication_type" {
   default     = "GRS"
 }
 
-# variable "administrator_login" {
-#   description = "Administrator user name"
-#   default     = "mradministrator"
-# }
-
-# variable "administrator_login_password" {
-#   description = "Administrator password"
-# }
-
 variable "sourceBranchName" {
   description = "Build Source Branch Name"
+  default     = "dev"
 }

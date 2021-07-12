@@ -1,7 +1,7 @@
 trigger:
   paths:
     include:
-      - /Avalon-Teraform/variables.tf
+      - /Artemis-Teraform/variables.tf
       - /v/main.tf
 
 pool:
@@ -24,7 +24,7 @@ variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
     stageName: "prod"
   
-  blob_storage: "avalon-terraform-state-${{ variables.stageName }}"
+  blob_storage: "artemis-terraform-state-${{ variables.stageName }}"
   state_file: "tf-statefile.state"
 
 steps:
@@ -39,25 +39,25 @@ steps:
 
   - script: terraform init -backend-config=resource_group_name=${{variables.sa_resource_group}} -backend-config="storage_account_name=${{variables.storage_accounts}}" -backend-config="container_name=${{variables.blob_storage}}" -backend-config="access_key=$(terraformdevops01-key1)" -backend-config="key=${{variables.state_file}}"
     displayName: 'Terraform Init'
-    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+    workingDirectory: $(System.DefaultWorkingDirectory)/Artemis-Teraform
   
   - script: terraform validate
     displayName: 'Terraform Validate' 
-    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+    workingDirectory: $(System.DefaultWorkingDirectory)/Artemis-Teraform
 
-  - script: terraform plan -input=false -out="tfplan" -var="client_id=$(devops-service-principal-client-id)" -var="client_secret=$(devops-service-principal-secret)" -var="tenant_id=$(devops-service-principal-tenant-id)" -var="subscription_id=${{variables.subscription_id}}" -var="sourceBranchName=${{variables.stageName}}"
+  - script: terraform plan -input=false -out="tfplan" -var="client_id=$(devops-service-principal-client-id)" -var="client_secret=$(devops-service-principal-secret)" -var="tenant_id=$(devops-service-principal-tenant-id)" -var="subscription_id=${{variables.subscription_id}}" -var="sourceBranchName=${{variables.stageName}}" -var="auth0domain=$(auth0domain-${{ variables.stageName }})" -var="auth0apiIdentifier=$(auth0apiIdentifier-${{ variables.stageName }})" -var="auth0claimsnameidentifier=$(auth0claimsnameidentifier-${{ variables.stageName }})" -var="auth0tokenaddress=$(auth0tokenaddress-${{ variables.stageName }})"
     displayName: 'Terraform Plan'
-    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+    workingDirectory: $(System.DefaultWorkingDirectory)/Artemis-Teraform
   
   # Delete everything by uncommenting the following section
-  - script: terraform plan -destroy -input=false -out="tfplan" -var="client_id=$(devops-service-principal-client-id)" -var="client_secret=$(devops-service-principal-secret)" -var="tenant_id=$(devops-service-principal-tenant-id)" -var="subscription_id=${{variables.subscription_id}}" -var="sourceBranchName=${{variables.stageName}}"
-    displayName: 'Terraform Plan -destroy '
-    workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+  # - script: terraform plan -destroy -input=false -out="tfplan" -var="client_id=$(devops-service-principal-client-id)" -var="client_secret=$(devops-service-principal-secret)" -var="tenant_id=$(devops-service-principal-tenant-id)" -var="subscription_id=${{variables.subscription_id}}" -var="sourceBranchName=${{variables.stageName}}" -var="auth0domain=$(auth0domain-${{ variables.stageName }})" -var="auth0apiIdentifier=$(auth0apiIdentifier-${{ variables.stageName }})" -var="auth0claimsnameidentifier=$(auth0claimsnameidentifier-${{ variables.stageName }})" -var="auth0tokenaddress=$(auth0tokenaddress-${{ variables.stageName }})"
+  #   displayName: 'Terraform Plan -destroy '
+  #   workingDirectory: $(System.DefaultWorkingDirectory)/Artemis-Teraform
 
   - task: ArchiveFiles@2
     displayName: 'Archive Terraform Plan Files'
     inputs:
-      rootFolderOrFile: Avalon-Teraform
+      rootFolderOrFile: Artemis-Teraform
       archiveType: tar
       archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-tfplan.tgz'
 
@@ -69,4 +69,4 @@ steps:
 
   # - script: terraform apply out.plan
   #   displayName: 'Terraform Apply'
-  #   workingDirectory: $(System.DefaultWorkingDirectory)/Avalon-Teraform
+  #   workingDirectory: $(System.DefaultWorkingDirectory)/Artemis-Teraform
