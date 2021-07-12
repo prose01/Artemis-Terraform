@@ -1,7 +1,7 @@
 trigger:
   paths:
     include:
-      - /Artemis-Teraform/variables.tf
+      - /Artemis-Terraform/variables.tf
       - /v/main.tf
 
 pool:
