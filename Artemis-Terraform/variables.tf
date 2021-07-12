@@ -45,3 +45,15 @@ variable "sourceBranchName" {
   description = "Build Source Branch Name"
   default     = "dev"
 }
+
+variable "auth0domain" {
+  description = "Auth0 Domain Address"
+}
+
+variable "auth0apiIdentifier" {
+  description = "Auth0 ApiIdentifier Address"
+}
+
+variable "auth0claimsnameidentifier" {
+  description = "Auth0 Claims nameidentifier Address"
+}
