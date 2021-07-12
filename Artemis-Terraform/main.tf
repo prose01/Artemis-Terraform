@@ -22,7 +22,7 @@ resource "random_id" "randomId" {
         resource_group = azurerm_resource_group.artemis-group.name
     }
 
-    byte_length = 2
+    byte_length = 1
 }
 
 # Create resource group
