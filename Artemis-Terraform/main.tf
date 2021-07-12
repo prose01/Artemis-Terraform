@@ -17,7 +17,7 @@ provider "azurerm" {
 
 # Create resource group
 resource "azurerm_resource_group" "artemis-group" {
-    name     = "Artemis-${var.sourceBranchName}"
+    name     = "Artemis-ResourceGroup-${var.sourceBranchName}"
     location = "${var.location}"
 
     tags = {
