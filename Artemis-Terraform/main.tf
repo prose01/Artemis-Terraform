@@ -15,9 +15,19 @@ provider "azurerm" {
     features {}
 }
 
+# Generate random text for a unique name
+resource "random_id" "randomId" {
+    keepers = {
+        # Generate a new ID only when a new resource group is defined
+        resource_group = azurerm_resource_group.artemis-group.name
+    }
+
+    byte_length = 2
+}
+
 # Create resource group
 resource "azurerm_resource_group" "artemis-group" {
-    name     = "Artemis-ResourceGroup-${var.sourceBranchName}"
+    name     = "Artemis-${var.sourceBranchName}"
     location = "${var.location}"
 
     tags = {
@@ -45,7 +55,7 @@ resource "azurerm_app_service_plan" "artemis-plan" {
 
 # Create app service
 resource "azurerm_app_service" "artemis" {
-    name                = "Artemis-${var.sourceBranchName}"
+    name                = "Artemis-${random_id.randomId.hex}-${var.sourceBranchName}"
     location            = azurerm_resource_group.artemis-group.location
     resource_group_name = azurerm_resource_group.artemis-group.name
     app_service_plan_id = azurerm_app_service_plan.artemis-plan.id
@@ -151,16 +161,6 @@ resource "azurerm_app_service_slot" "artemis-slot" {
 #  tags = {       
 #         Artemis = azurerm_resource_group.artemis-group.tags.Artemis
 #     }
-# }
-
-# # Generate random text for a unique name
-# resource "random_id" "randomId" {
-#     keepers = {
-#         # Generate a new ID only when a new resource group is defined
-#         resource_group = azurerm_resource_group.artemis-group.name
-#     }
-
-#     byte_length = 8
 # }
 
 # # Create storage account
