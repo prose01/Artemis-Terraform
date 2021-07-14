@@ -73,6 +73,7 @@ resource "azurerm_app_service" "artemis" {
     }
 
     app_settings = {
+        "AllowedHosts" = "${var.allowedhosts}"
         "Mongo_Database" = "Avalon"
         "Auth0_Domain" = "${var.auth0domain}"
         "Auth0_ApiIdentifier" = "${var.auth0apiIdentifier}"
@@ -121,6 +122,7 @@ resource "azurerm_app_service_slot" "artemis-slot" {
     }
 
     app_settings = {
+        "AllowedHosts" = "${var.allowedhosts}"
         "Mongo_Database" = "Avalon"
         "Auth0_Domain" = "${var.auth0domain}"
         "Auth0_ApiIdentifier" = "${var.auth0apiIdentifier}"
