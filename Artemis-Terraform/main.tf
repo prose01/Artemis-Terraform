@@ -45,7 +45,7 @@ resource "azurerm_app_service_plan" "artemis-plan" {
     
     sku {
         tier = "Standard"
-        size = "S1"
+        size = "P1V2"
     }
 
     tags = {
